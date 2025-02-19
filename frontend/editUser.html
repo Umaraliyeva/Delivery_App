@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit User</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+    }
+    .btn-custom {
+      background-color: #343a40;
+      color: white;
+      width: 100%;
+    }
+    .btn-custom:hover {
+      background-color: #23272b;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header bg-dark text-white">
+    Edit User
+  </div>
+  <br>
+  <a href="index.html" class="btn btn-dark text-white">Back</a>
+
+
+  <div class="card-body">
+    <form id="editUserForm">
+      <div class="mb-3">
+        <input id="fullName" class="form-control" placeholder="Full Name" type="text">
+      </div>
+      <div class="mb-3">
+        <input id="username" class="form-control" placeholder="Username" type="text">
+      </div>
+      <div class="mb-3">
+        <input id="password" class="form-control" placeholder="Password" type="password">
+      </div>
+      <div class="mb-3">
+        <input id="passwordRepeat" class="form-control" placeholder="Repeat Password" type="password">
+      </div>
+      <div class="mb-3">
+        <select id="role_select" multiple class="form-select">
+        </select>
+      </div>
+      <button type="submit" class="btn btn-custom">Update</button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="axiosConfig.js"></script>
+<script>
+  let roleSelect = document.getElementById("role_select");
+  let userId = new URLSearchParams(window.location.search).get('id');  // Get user ID from URL
+
+  // Fetch roles
+  axios.get("http://localhost:8080/role")
+          .then(res => {
+            let options = res.data.map(role => `<option value="${role.id}">${role.roleName}</option>`).join('');
+            roleSelect.innerHTML = options;
+          })
+          .catch(err => console.error("Error fetching roles:", err));
+
+  // Fetch user data to populate the form
+  if (userId) {
+    axios.get(`http://localhost:8080/superAdmin/user/${userId}`)
+            .then(res => {
+              let user = res.data;
+              document.getElementById("fullName").value = user.fullName;
+              document.getElementById("username").value = user.username;
+
+              let selectedRoles = user.roles.map(role => role.id);
+              Array.from(roleSelect.options).forEach(option => {
+                if (selectedRoles.includes(parseInt(option.value))) {
+                  option.selected = true;
+                }
+              });
+            })
+            .catch(err => console.error("Error fetching user data:", err));
+  }
+
+  document.getElementById("editUserForm").addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    let roleIds = Array.from(roleSelect.selectedOptions).map(option => parseInt(option.value));
+    let updatedUser = {
+      fullName: document.getElementById("fullName").value,
+      username: document.getElementById("username").value,
+      password: document.getElementById("password").value,
+      passwordRepeat: document.getElementById("passwordRepeat").value,
+      roleIds
+    };
+
+    if (updatedUser.password === updatedUser.passwordRepeat) {
+      axios.put(`http://localhost:8080/superAdmin/user/${userId}`, updatedUser)
+              .then(() => {
+                window.location.href = "userCRUD.html";  // Redirect after successful update
+              })
+              .catch(err => {
+                alert("Error updating user: " + err);
+              });
+    } else {
+      alert("Passwords do not match!");
+    }
+  });
+</script>
+
+</body>
+</html>

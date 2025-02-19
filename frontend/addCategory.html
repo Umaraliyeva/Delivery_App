@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AddCategory</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+<body>
+<a href="index.html" class="btn btn-dark"> Back</a>
+<div class="row mt-4">
+  <div class="col-6 offset-3">
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        Add Category
+      </div>
+      <div class="card-body">
+        <form onsubmit="saveCategory(event)">
+          <div class="mb-3">
+            <input id="categoryName" placeholder="Category Name" class="form-control" type="text" required>
+          </div>
+          <button class="btn btn-dark">Save</button>
+        </form>
+        <hr>
+        <div>
+          <h5>Categories</h5>
+          <ul id="categoryList" class="list-group">
+
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="axiosConfig.js"></script>
+
+<script>
+
+  let categoryList = document.getElementById("categoryList");
+  getCategories();
+
+  function getCategories() {
+    axios.get("http://localhost:8080/category")
+            .then(res => {
+              let categories = res.data;
+              let listItems = "";
+              for (let category of categories) {
+                listItems += `
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span id="categoryName-${category.id}">${category.name}</span>
+            <div>
+              <button class="btn btn-warning btn-sm me-2" onclick="showUpdateForm(${category.id}, '${category.name}')">Update</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">Delete</button>
+            </div>
+          </li>`;
+              }
+              categoryList.innerHTML = listItems;
+            });
+  }
+
+  function saveCategory(event) {
+    event.preventDefault();
+      axios({
+        url:"http://localhost:8080/category",
+        method:"post",
+        data:{
+          name:event.target[0].value
+
+        }
+
+      }).then(resp=>{
+        getCategories()
+      })
+  }
+
+  function showUpdateForm(categoryId, currentName) {
+    const categoryElement = document.getElementById(`categoryName-${categoryId}`);
+    categoryElement.innerHTML = `
+      <input type="text" class="form-control form-control-sm mb-2" id="updateInput-${categoryId}" value="${currentName}">
+      <button class="btn btn-success btn-sm" onclick="updateCategory(${categoryId})">Save</button>
+      <button class="btn btn-secondary btn-sm" onclick="cancelUpdate(${categoryId}, '${currentName}')">Cancel</button>
+    `;
+  }
+
+  function updateCategory(categoryId) {
+    const updateInput = document.getElementById(`updateInput-${categoryId}`);
+    const newName = updateInput.value.trim();
+
+    if (!newName) {
+      alert("Category name cannot be empty!");
+      return;
+    }
+
+    axios.put(`http://localhost:8080/category/${categoryId}`, { name: newName })
+            .then(() => {
+              getCategories();
+            })
+            .catch(err => console.error(err));
+  }
+
+  function cancelUpdate(categoryId, originalName) {
+    const categoryElement = document.getElementById(`categoryName-${categoryId}`);
+    categoryElement.innerHTML = originalName;
+  }
+
+
+  function deleteCategory(categoryId) {
+    if (confirm("Are you sure you want to delete this category?")) {
+      axios.delete(`http://localhost:8080/category/${categoryId}`)
+              .then(() => {
+                getCategories();
+              });
+    }
+  }
+
+</script>
+</body>
+</html>
