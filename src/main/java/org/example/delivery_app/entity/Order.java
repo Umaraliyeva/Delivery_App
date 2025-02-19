@@ -24,9 +24,6 @@ public class Order {
     private Location location;
 
     @ManyToOne
-    private User operator;
-
-    @ManyToOne
     private TelegramUser tgUser;
 
 
