@@ -17,7 +17,7 @@
             display: flex;
             gap: 20px;
             justify-content: center;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Allow wrapping for smaller screens */
         }
         .column {
             padding: 15px;
@@ -97,9 +97,7 @@
             height: 40px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 1001;
-        }
-
-        /* Archive Button */
+        }/* Archive Button */
         .archive-button {
             position: fixed;
             top: 20px;
@@ -211,9 +209,7 @@
             console.error("Xatolik:", error);
             return "Xatolik yuz berdi";
         }
-    };
-
-    const formatDate = (dateString) => {
+    };const formatDate = (dateString) => {
         let date = new Date(dateString);
         return date.toISOString().slice(0, 19).replace("T", " ");
     };

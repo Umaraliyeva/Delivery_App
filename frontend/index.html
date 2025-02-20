@@ -49,8 +49,10 @@
         <li class="list-group-item" onclick="fetchAllProducts()">All</li>
     </ul>
 
-    <button class="btn btn-primary w-100 mb-2" onclick="navigateTo('addProduct.html')">Add Product</button>
-    <button class="btn btn-primary w-100 mb-2" onclick="navigateTo('addCategory.html')">Add Category</button>
+    <!-- "Add Product" va "Add Category" buttonlariga "admin-only" klassini qo'shish -->
+    <button class="btn btn-primary w-100 mb-2 admin-only" onclick="navigateTo('addProduct.html')">Add Product</button>
+    <button class="btn btn-primary w-100 mb-2 admin-only" onclick="navigateTo('addCategory.html')">Add Category</button>
+
     <button class="btn btn-primary w-100 mb-2" onclick="navigateTo('orderManagement.html')">Order Management</button>
     <button class="btn btn-primary w-100 mb-2" onclick="navigateTo('archive.html')">Archived Orders</button>
     <button class="btn btn-primary w-100 mb-2" onclick="navigateTo('report.html')">Report</button>
@@ -102,6 +104,16 @@
             const userData = response.data;
             document.getElementById('user-fullname').textContent = userData.fullname;
             document.getElementById('user-avatar').src = `http://localhost:8080/file/${userData.attachmentId}`;
+
+            const isUser = userData.roles.some(role => role.roleName === 'ROLE_USER');
+            if (isUser) {
+                document.getElementById('categories').style.display = 'none';
+                document.querySelectorAll('.admin-only').forEach(btn => btn.style.display = 'none');
+                document.getElementById('content').style.display = 'none';
+            }else{
+                document.getElementById('content').style.display = 'block';
+            }
+
         } catch (error) {
             console.error("Error loading user info:", error);
         }
