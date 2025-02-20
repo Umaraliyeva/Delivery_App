@@ -2,9 +2,260 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 90%;
+            margin: 50px auto;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .column {
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            position: relative;
+            min-width: 220px; /* Smaller min-width */
+            max-width: 280px; /* Smaller max-width */
+            margin-bottom: 20px; /* Space between columns */
+        }
+        .new-order { background: #a3d9a5; }
+        .in-progress { background: #f0c674; }
+        .delivering { background: #72aee6; }
+        .delivered { background: #fa8d8d; }
+        .canceled { background: #ff4444; }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .task {
+            background: white;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: relative;
+            cursor: pointer;
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task .options {
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .task .arrow {
+            cursor: pointer;
+            font-size: 18px;
+            text-align: right;
+        }
+        .modal {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 5px;
+            width: 250px;
+            z-index: 1000;
+        }
+        .task:active .modal {
+            display: block;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            text-decoration: none;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+        }
+
+        .archive-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 18px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+        }
+    </style>
 </head>
 <body>
-
+<a href="index.html" class="back-button" >&#8592;</a>
+<a href="#" class="archive-button">Archive</a>
+<br><br>
+<div class="container">
+    <div class="column new-order">
+        <h2>New Order</h2>
+        <div class="task" id="new_order">
+            <div class="task-header">
+                <span>John Doe - 123 Main St</span>
+                <span class="options">⋮</span>
+            </div>
+            <span>Item 1, Item 2</span>
+            <span class="arrow">➡️</span>
+            <div class="modal">Order Details...</div>
+        </div>
+    </div>
+    <div class="column in-progress">
+        <h2>In Progress</h2>
+        <div class="task" id="in_progress">
+            <div class="task-header">
+                <span>Jane Smith - 456 Oak Ave</span>
+                <span class="options">⋮</span>
+            </div>
+            <span>Item 3, Item 4</span>
+            <span class="arrow">➡️</span>
+            <div class="modal">Order Details...</div>
+        </div>
+    </div>
+    <div class="column delivering">
+        <h2>Delivering</h2>
+        <div class="task" id="delivering">
+            <div class="task-header">
+                <span>Mike Johnson - 789 Pine Rd</span>
+                <span class="options">⋮</span>
+            </div>
+            <span>Item 5, Item 6</span>
+            <span class="arrow">➡️</span>
+            <div class="modal">Order Details...</div>
+        </div>
+    </div>
+    <div class="column delivered">
+        <h2>Completed</h2>
+        <div class="task" id="completed">
+            <div class="task-header">
+                <span>Mike Johnson - 789 Pine Rd</span>
+                <span class="options">⋮</span>
+            </div>
+            <span>Item 5, Item 6</span>
+            <span class="arrow">➡️</span>
+            <div class="modal">Order Details...</div>
+        </div>
+    </div>
+    <div class="column canceled">
+        <h2>Canceled</h2>
+        <div class="task" id="canceled">
+            <div class="task-header">
+                <span>Emily Davis - 321 Elm St</span>
+                <span class="options">⋮</span>
+            </div>
+            <span>Item 7, Item 8</span>
+            <span class="arrow">➡️</span>
+            <div class="modal">Order Details...</div>
+        </div>
+    </div>
+</div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="axiosConfig.js"></script>
+<script>
+    let new_order = document.getElementById("new_order");
+    let in_progress = document.getElementById("in_progress");
+    let delivering = document.getElementById("delivering");
+    let completed = document.getElementById("completed");
+    let canceled = document.getElementById("canceled");
+
+
+    const YANDEX_API_KEY = "78f73487-90dc-40af-897b-4afd03d3dc92";
+
+    const getAddressFromCoordinates = async (latitude, longitude) => {
+        const url = `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_API_KEY}&geocode=${longitude},${latitude}&format=json`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            // Yandex API natijasidan eng yaqin manzilni olish
+            const address =
+                data.response.GeoObjectCollection.featureMember[0]?.GeoObject?.metaDataProperty?.GeocoderMetaData?.text ||
+                "Manzil topilmadi";
+
+            return address;
+        } catch (error) {
+            console.error("Xatolik:", error);
+            return "Xatolik yuz berdi";
+        }
+    };
+
+    const formatDate = (dateString) => {
+        let date = new Date(dateString);
+        return date.toISOString().slice(0, 19).replace("T", " ");
+    };
+
+    axios.get("http://localhost:8080/order")
+        .then(async (res) => {
+            console.log(res.data);
+            for (let item of res.data) {
+                let formattedDate = formatDate(item.date);
+                let address = await getAddressFromCoordinates(item.location.latitude, item.location.longitude);
+
+                let orderHtml = `
+                <div class="task-header">
+                    <span>${item.tgUser.fullName}</span>
+                    <span class="options">⋮</span>
+                </div>
+                <span>Location: ${address}</span>
+                <span>${formattedDate}</span>
+                <span class="arrow">➡️</span>
+            `;
+
+                switch (item.status) {
+                    case "NEW":
+                        new_order.innerHTML = orderHtml;
+                        break;
+                    case "IN_PROGRESS":
+                        in_progress.innerHTML = orderHtml;
+                        break;
+                    case "DELIVERING":
+                        delivering.innerHTML = orderHtml;
+                        break;
+                    case "COMPLETED":
+                        completed.innerHTML = orderHtml;
+                        break;
+                    case "CANCELED":
+                        canceled.innerHTML = orderHtml;
+                        break;
+                    default:
+                        return;
+                }
+            }
+        });
+
+
+</script>
 </html>
