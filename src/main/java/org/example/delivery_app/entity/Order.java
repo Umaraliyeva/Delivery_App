@@ -39,8 +39,9 @@ public class Order {
     private TelegramUser tgUser;
 
     @JsonProperty("formattedDate")
-    public String getFormatedDate() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public String getFormattedDate() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yy - HH:mm");
         return date.format(formatter);
     }
+
 }
