@@ -5,32 +5,150 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management</title>
     <style>
+        .arrow-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto; /* O'ng burchakka siljitish */
+        }
+
+        .arrow-btn .arrow {
+            font-size: 16px;
+        }
+
+        .modal-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .user-info {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .user-phone {
+            color: gray;
+            font-size: 14px;
+        }
+
+        .order-items {
+            margin-top: 10px;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .product-name {
+            font-weight: bold;
+            flex: 2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* Uzoq nomlar sig‘ishi uchun */
+        }
+
+        .product-count {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .product-total {
+            flex: 1;
+            text-align: right;
+            font-weight: bold;
+        }
+        .total-price {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .order-location {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .order-date {
+            margin-top: 10px;
+            text-align: right;
+            font-size: 14px;
+            color: gray;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            width: 500px; /* Modalni kengaytirish */
+            max-height: 80vh; /* Ekranga sig‘ishi uchun maksimal balandlik */
+            overflow-y: auto; /* Ko‘p mahsulot bo‘lsa skroll chiqadi */
+        }
+
+        #modal-content {
+            position: relative;
+        }
+
+        #close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: red;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
         }
+
         .container {
             width: 90%;
             margin: 50px auto;
             display: flex;
             gap: 20px;
             justify-content: center;
-            flex-wrap: wrap; /* Allow wrapping for smaller screens */
+            flex-wrap: wrap; /* Ekran kichrayganda joylashuvni moslash */
         }
+
         .column {
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             flex: 1;
             position: relative;
-            min-width: 220px; /* Smaller min-width */
-            max-width: 280px; /* Smaller max-width */
-            margin-bottom: 20px; /* Space between columns */
+            min-width: 220px; /* Minimal kenglik kichraytirildi */
+            max-width: 280px; /* Maksimal kenglik */
+            margin-bottom: 20px; /* Ustunlar orasidagi bo‘shliq */
         }
+
         .new-order { background: #a3d9a5; }
-        .in-progress { background: #f0c674; }
+        .in-progress { background: #ffc85b; }
         .delivering { background: #72aee6; }
         .delivered { background: #fa8d8d; }
         .canceled { background: #ff4444; }
@@ -39,6 +157,7 @@
             text-align: center;
             margin-bottom: 10px;
         }
+
         .task {
             background: white;
             padding: 12px;
@@ -50,20 +169,46 @@
             position: relative;
             cursor: pointer;
         }
+
         .task-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            position: relative;
         }
+
         .task .options {
-            cursor: pointer;
+            position: absolute;
+            top: -25px; /* Eng tepaga chiqarish */
+            right: 0;
             font-size: 20px;
-        }
-        .task .arrow {
             cursor: pointer;
-            font-size: 18px;
+        }
+
+
+        .location {
+            font-size: 14px;
+            color: #444;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .arrow {
+            font-size: 16px;
             text-align: right;
         }
+
+        .date {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+            display: block;
+        }
+
         .modal {
             display: none;
             position: absolute;
@@ -77,9 +222,12 @@
             width: 250px;
             z-index: 1000;
         }
+
         .task:active .modal {
             display: block;
         }
+
+        /* Ortga qaytish tugmasi */
         .back-button {
             position: fixed;
             top: 20px;
@@ -97,7 +245,9 @@
             height: 40px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 1001;
-        }/* Archive Button */
+        }
+
+        /* Arxivlash tugmasi */
         .archive-button {
             position: fixed;
             top: 20px;
@@ -112,70 +262,47 @@
             z-index: 1001;
         }
     </style>
+
 </head>
 <body>
+<div id="modal">
+    <span id="close-modal">&times;</span>
+    <div id="modal-content"></div>
+</div>
+
+
 <a href="index.html" class="back-button" >&#8592;</a>
-<a href="#" class="archive-button">Archive</a> <!-- Archive button added -->
+<a href="#" class="archive-button">Archive</a>
 <br><br>
 <div class="container">
     <div class="column new-order">
         <h2>New Order</h2>
         <div class="task" id="new_order">
-            <div class="task-header">
-                <span>John Doe - 123 Main St</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 1, Item 2</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
     <div class="column in-progress">
         <h2>In Progress</h2>
         <div class="task" id="in_progress">
-            <div class="task-header">
-                <span>Jane Smith - 456 Oak Ave</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 3, Item 4</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
     <div class="column delivering">
         <h2>Delivering</h2>
         <div class="task" id="delivering">
-            <div class="task-header">
-                <span>Mike Johnson - 789 Pine Rd</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 5, Item 6</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
     <div class="column delivered">
         <h2>Completed</h2>
         <div class="task" id="completed">
-            <div class="task-header">
-                <span>Mike Johnson - 789 Pine Rd</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 5, Item 6</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
     <div class="column canceled">
-        <h2>Canceled</h2>
-        <div class="task" id="canceled">
-            <div class="task-header">
-                <span>Emily Davis - 321 Elm St</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 7, Item 8</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+        <h2>Trash</h2>
+        <div class="task" id="trashed">
+
         </div>
     </div>
 </div>
@@ -188,6 +315,7 @@
     let delivering = document.getElementById("delivering");
     let completed = document.getElementById("completed");
     let canceled = document.getElementById("canceled");
+    let trashed = document.getElementById("trashed");
 
 
     const YANDEX_API_KEY = "78f73487-90dc-40af-897b-4afd03d3dc92";
@@ -199,7 +327,6 @@
             const response = await fetch(url);
             const data = await response.json();
 
-            // Yandex API natijasidan eng yaqin manzilni olish
             const address =
                 data.response.GeoObjectCollection.featureMember[0]?.GeoObject?.metaDataProperty?.GeocoderMetaData?.text ||
                 "Manzil topilmadi";
@@ -221,38 +348,152 @@
                 let formattedDate = formatDate(item.date);
                 let address = await getAddressFromCoordinates(item.location.latitude, item.location.longitude);
 
+
                 let orderHtml = `
-                <div class="task-header">
-                    <span>${item.tgUser.fullName}</span>
-                    <span class="options">⋮</span>
-                </div>
-                <span>Location: ${address}</span>
-                <span>${formattedDate}</span>
-                <span class="arrow">➡️</span>
-            `;
+    <div class="task" data-id="${item.id}">
+        <div class="task-header">
+            <span class="options">⋮</span>
+            <span class="name">${item.tgUser.fullName}</span>
+        </div>
+        <span class="location">Location: ${address}</span>
+        <input type="hidden" value="${item.id}">
+        <span class="location">${item.tgUser.phone}</span>
+        <span class="date">${formattedDate}</span>
+        <button class="arrow-btn" onclick="event.stopPropagation(); updateStatus(${item.id})">
+    <span class="arrow">➡️</span>
+</button>
+
+    </div>`;
+
+                function updateStatus(orderId) {
+                    axios.post(`http://localhost:8080/order/updateStatus`, { id: orderId, status: "COMPLETED" })
+                        .then(res => {
+                            console.log("Status yangilandi:", res.data);
+                            window.location.href = "orderManagement.html"; // Sahifani qayta yuklash
+                        })
+                        .catch(error => {
+                            console.error("Xatolik yuz berdi:", error);
+                        });
+                }
 
                 switch (item.status) {
-                    case "NEW":
-                        new_order.innerHTML = orderHtml;
-                        break;
-                    case "IN_PROGRESS":
-                        in_progress.innerHTML = orderHtml;
-                        break;
-                    case "DELIVERING":
-                        delivering.innerHTML = orderHtml;
-                        break;
-                    case "COMPLETED":
-                        completed.innerHTML = orderHtml;
-                        break;
-                    case "CANCELED":
-                        canceled.innerHTML = orderHtml;
-                        break;
-                    default:
-                        return;
+                    case "NEW": new_order.innerHTML = orderHtml;break;
+                    case "IN_PROGRESS": in_progress.innerHTML = orderHtml;break;
+                    case "DELIVERING": delivering.innerHTML = orderHtml; break;
+                    case "COMPLETED": completed.innerHTML = orderHtml; break;
+                    case "CANCELED": canceled.innerHTML = orderHtml; break;
+                    case "TRASHED": trashed.innerHTML = orderHtml; break;
+                    default: return;
                 }
             }
         });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("modal");
+        const modalContent = document.getElementById("modal-content");
+        const closeModalBtn = document.getElementById("close-modal");
+        let selectedOrderId = null;
+
+        document.addEventListener("click", function (event) {
+            let task = event.target.closest(".task");
+            if (!task || event.target.classList.contains("options") || event.target.closest(".arrow-btn")) return;
+
+            let taskIdInput = task.querySelector("input[type='hidden']");
+            let column = task.closest(".column");
+
+            if (taskIdInput && column) {
+                let newOrderId = taskIdInput.value;
+                modal.style.display = "none";
+
+                selectedOrderId = newOrderId;
+                let selectedOrderStatus = column.querySelector("h2").innerText;
+                openModal(selectedOrderId, selectedOrderStatus);
+            }
+        });
+
+        closeModalBtn.addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+
+        async function openModal(taskId, taskStatus) {
+            if (!taskId) return;
+
+            axios.post(`http://localhost:8080/orderItem/${taskId}`)
+                .then(async (res) => {
+                    if (!res.data || res.data.length === 0) {
+                        console.error("No order data received.");
+                        return;
+                    }
+
+                    let userFullName = res.data[0]?.order?.tgUser?.fullName || "Noma'lum foydalanuvchi";
+                    let userPhone = res.data[0]?.order?.tgUser?.phone || "Noma'lum telefon raqam";
+                    let orderDate = new Date(res.data[0]?.order?.date).toLocaleString();
+
+                    let latitude = res.data[0]?.order?.location?.latitude;
+                    let longitude = res.data[0]?.order?.location?.longitude;
+                    let orderLocation = "Manzil topilmadi";
+
+                    if (latitude && longitude) {
+                        orderLocation = await getAddressFromCoordinates(latitude, longitude);
+                    }
+
+                    let totalPrice = 0;
+                    let orderItemsHtml = "";
+
+                    for (let item of res.data) {
+                        let productName = item.product?.name || "Noma'lum mahsulot";
+                        let count = item.amount || 0;
+                        let price = item.product?.price || 0;
+                        let itemTotal = count * price;
+                        totalPrice += itemTotal;
+
+                        orderItemsHtml += `
+                        <div class="order-item">
+                            <span class="product-name">${productName}</span>
+                            <span class="product-count">${count} × $${price.toFixed(2)}</span>
+                            <span class="product-total">$${itemTotal.toFixed(2)}</span>
+                        </div>
+                    `;
+                    }
+
+                    modalContent.innerHTML = `
+                    <div class="modal-header">
+                        <h2>${taskStatus}</h2>
+                        <span class="user-info">${userFullName}</span>
+                        <span class="user-phone">${userPhone}</span>
+                    </div>
+                    <div class="order-items">
+                        ${orderItemsHtml}
+                    </div>
+                    <div class="total-price">
+                        <strong>Total price:</strong> $${totalPrice.toFixed(2)}
+                    </div>
+                    <div class="order-location">
+                        <strong>Location</strong>:</strong> ${orderLocation}
+                    </div>
+                    <div class="order-date">
+                        <strong>Date of order:</strong> ${orderDate}
+                    </div>
+                `;
+
+                    modal.style.display = "block";
+                })
+                .catch(error => {
+                    console.error("Xatolik yuz berdi: ", error);
+                });
+        }
+
+        document.querySelectorAll(".arrow-btn").forEach((btn) => {
+            btn.addEventListener("click", function (event) {
+                event.stopPropagation();
+                console.log("Arrow button clicked! Modal ochilmaydi.");
+            });
+        });
+    });
 
 
 </script>
+
+
 </html>
