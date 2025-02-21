@@ -1,5 +1,6 @@
 package org.example.delivery_app.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.delivery_app.dto.ProductSaveDTO;
 import org.example.delivery_app.entity.Product;
@@ -11,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/product")
@@ -55,21 +57,31 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public void saveProduct(@RequestBody ProductSaveDTO productSaveDTO) {
-        Product product =   Product.builder()
+    public ResponseEntity<?> saveProduct(@RequestBody @Valid ProductSaveDTO productSaveDTO) {
+        if (productRepository.findByName(productSaveDTO.getName()).isPresent()) {
+            return ResponseEntity.badRequest().body("Bunday nomli mahsulot allaqachon mavjud!");
+        }
+        Product product = Product.builder()
                 .name(productSaveDTO.getName())
                 .price(productSaveDTO.getPrice())
                 .category(categoryRepository.findById(productSaveDTO.getCategoryId()).orElseThrow())
                 .attachment(attachmentRepository.findById(productSaveDTO.getAttachmentId()).orElseThrow())
                 .build();
         productRepository.save(product);
+        return ResponseEntity.ok("Mahsulot muvaffaqiyatli qo'shildi!");
     }
 
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public void updateProduct(@PathVariable Integer id, @RequestBody ProductSaveDTO productSaveDTO) {
-        Product product =   Product.builder()
+    public ResponseEntity<?> updateProduct(@PathVariable Integer id, @RequestBody ProductSaveDTO productSaveDTO) {
+        Optional<Product> existingProduct = productRepository.findByName(productSaveDTO.getName());
+
+        if (existingProduct.isPresent() && !existingProduct.get().getId().equals(id)) {
+            return ResponseEntity.badRequest().body("Bunday nomli mahsulot allaqachon mavjud!");
+        }
+
+        Product product = Product.builder()
                 .id(id)
                 .name(productSaveDTO.getName())
                 .price(productSaveDTO.getPrice())
@@ -77,6 +89,7 @@ public class ProductController {
                 .attachment(attachmentRepository.findById(productSaveDTO.getAttachmentId()).orElseThrow())
                 .build();
         productRepository.save(product);
+        return ResponseEntity.ok("Mahsulot muvaffaqiyatli yangilandi!");
     }
 
 
@@ -85,5 +98,10 @@ public class ProductController {
     public void deleteProduct(@PathVariable Integer id) {
         productRepository.deleteById(id);
 
+    }
+    @GetMapping("/exists")
+    public ResponseEntity<Boolean> checkProductName(@RequestParam String name) {
+        boolean exists = productRepository.existsByName(name);
+        return ResponseEntity.ok(exists);
     }
 }

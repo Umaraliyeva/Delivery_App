@@ -65,24 +65,45 @@ public class SuperAdminController {
     }
 
     @PutMapping("/user/{id}")
-    public HttpEntity<?> updateUser(@PathVariable Integer id, @RequestBody UserDTO userDTO) {
+    public HttpEntity<?> updateUser(@PathVariable Integer id,
+                                    @ModelAttribute UserDTO userDTO,
+                                    @RequestParam("file") MultipartFile file) throws IOException {
+
+        // Foydalanuvchini bazadan topamiz
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setId(id);
+        // Faylni saqlash (Agar fayl mavjud bo'lsa)
+        if (!file.isEmpty()) {
+            Attachment attachment = Attachment.builder()
+                    .fileName(file.getOriginalFilename())
+                    .build();
+            attachmentRepository.save(attachment);
+
+            AttachmentContent attachmentContent = AttachmentContent.builder()
+                    .content(file.getBytes())
+                    .attachment(attachment)
+                    .build();
+            attachmentContentRepository.save(attachmentContent);
+
+            user.setAttachment(attachment);
+        }
+
+        // Foydalanuvchi ma'lumotlarini yangilash
         user.setFullName(userDTO.getFullName());
         user.setUsername(userDTO.getUsername());
         user.setRoles(roleRepository.findByIdIn(userDTO.getRoleIds()));
 
-
-        if (!userDTO.getPassword().isEmpty()) {
+        // Parolni o'zgartirish (faqat agar berilgan bo'lsa)
+        if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         }
 
+        // Yangilangan foydalanuvchini saqlash
         userRepository.save(user);
+
         return ResponseEntity.ok(user);
     }
-
 
     @PostMapping
     public ResponseEntity<?> createUser(

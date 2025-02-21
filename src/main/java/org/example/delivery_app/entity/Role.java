@@ -2,6 +2,7 @@ package org.example.delivery_app.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.delivery_app.enums.RoleName;
@@ -13,6 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 @NoArgsConstructor
 @Entity
 @Table(name = "roles")
+@Builder
 public class Role implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

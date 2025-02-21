@@ -45,18 +45,22 @@
 
 
   <div class="card-body">
-    <form id="editUserForm">
+    <form id="editUserForm" enctype="multipart/form-data">
       <div class="mb-3">
         <input id="fullName" class="form-control" placeholder="Full Name" type="text">
       </div>
       <div class="mb-3">
-        <input id="username" class="form-control" placeholder="Username" type="text">
+        <input id="username" class="form-control" placeholder="Enter Email" type="text">
       </div>
       <div class="mb-3">
         <input id="password" class="form-control" placeholder="Password" type="password">
       </div>
       <div class="mb-3">
         <input id="passwordRepeat" class="form-control" placeholder="Repeat Password" type="password">
+      </div>
+      <div class="mb-3">
+        <label for="file" class="form-label">Profile Picture</label>
+        <input type="file" id="file" class="form-control" required>
       </div>
       <div class="mb-3">
         <select id="role_select" multiple class="form-select">
@@ -102,19 +106,29 @@
   document.getElementById("editUserForm").addEventListener('submit', function(event) {
     event.preventDefault();
 
-    let roleIds = Array.from(roleSelect.selectedOptions).map(option => parseInt(option.value));
-    let updatedUser = {
-      fullName: document.getElementById("fullName").value,
-      username: document.getElementById("username").value,
-      password: document.getElementById("password").value,
-      passwordRepeat: document.getElementById("passwordRepeat").value,
-      roleIds
-    };
+    let formData = new FormData();
+    formData.append("fullName", document.getElementById("fullName").value);
+    formData.append("username", document.getElementById("username").value);
+    formData.append("password", document.getElementById("password").value);
+    formData.append("passwordRepeat", document.getElementById("passwordRepeat").value);
 
-    if (updatedUser.password === updatedUser.passwordRepeat) {
-      axios.put(`http://localhost:8080/superAdmin/user/${userId}`, updatedUser)
+    let fileInput = document.getElementById("file");
+    if (fileInput.files.length > 0) {
+      formData.append("file", fileInput.files[0]);  // Fayl qo‘shish
+    }
+
+    let roleSelect = document.getElementById("role_select");
+    let roleIds = Array.from(roleSelect.selectedOptions).map(option => parseInt(option.value));
+    roleIds.forEach(roleId => formData.append("roleIds", roleId));  // Array o‘rniga har bir ID alohida qo‘shiladi.
+
+    if (formData.get("password") === formData.get("passwordRepeat")) {
+      axios.put(`http://localhost:8080/superAdmin/user/${userId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
               .then(() => {
-                window.location.href = "userCRUD.html";  // Redirect after successful update
+                window.location.href = "userCRUD.html";  // Muvaffaqiyatli yangilanishdan keyin sahifani o'zgartirish
               })
               .catch(err => {
                 alert("Error updating user: " + err);

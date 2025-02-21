@@ -18,6 +18,7 @@
         <form onsubmit="saveCategory(event)">
           <div class="mb-3">
             <input id="categoryName" placeholder="Category Name" class="form-control" type="text" required>
+            <span id="error-message" class="text-danger"></span>
           </div>
           <button class="btn btn-dark">Save</button>
         </form>
@@ -63,19 +64,25 @@
 
   function saveCategory(event) {
     event.preventDefault();
-      axios({
-        url:"http://localhost:8080/category",
-        method:"post",
-        data:{
-          name:event.target[0].value
+    let categoryName = event.target[0].value.trim();
+    let errorMessage = document.getElementById("error-message");
 
-        }
+    errorMessage.textContent = ""; // Xatolikni tozalash
 
-      }).then(resp=>{
-        getCategories()
-      })
+    axios.post("http://localhost:8080/category", { name: categoryName })
+            .then(resp => {
+              alert("Kategoriya muvaffaqiyatli qo'shildi!");
+              getCategories();
+              event.target.reset(); // Forma tozalansin
+            })
+            .catch(err => {
+              if (err.response && err.response.status === 400) {
+                errorMessage.textContent = err.response.data; // Xatolikni chiqarish
+              } else {
+                errorMessage.textContent = "Xatolik yuz berdi, qayta urinib ko'ring!";
+              }
+            });
   }
-
   function showUpdateForm(categoryId, currentName) {
     const categoryElement = document.getElementById(`categoryName-${categoryId}`);
     categoryElement.innerHTML = `
@@ -88,9 +95,10 @@
   function updateCategory(categoryId) {
     const updateInput = document.getElementById(`updateInput-${categoryId}`);
     const newName = updateInput.value.trim();
+    const errorMessage = document.getElementById(`error-message-${categoryId}`);
 
     if (!newName) {
-      alert("Category name cannot be empty!");
+      errorMessage.textContent = "Kategoriya nomi bo‘sh bo‘lishi mumkin emas!";
       return;
     }
 
@@ -98,7 +106,13 @@
             .then(() => {
               getCategories();
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+              if (err.response && err.response.status === 400) {
+                errorMessage.textContent = err.response.data;
+              } else {
+                errorMessage.textContent = "Tarmoq xatosi! Server ishlayaptimi?";
+              }
+            });
   }
 
   function cancelUpdate(categoryId, originalName) {

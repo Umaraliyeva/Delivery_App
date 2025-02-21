@@ -28,7 +28,7 @@ public class TokenService {
 
         return Jwts.builder()
                 .subject(user.getUsername())
-               .claims(claims)
+                .claims(claims)
                 .signWith(signKey())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))

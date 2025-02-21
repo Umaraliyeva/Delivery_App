@@ -1,6 +1,7 @@
 package org.example.delivery_app.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,8 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @Column(unique = true, nullable = false)
+    @Email(message = "email xato qaytadan urinib ko'ring ")
     private String username;
     private String password;
     private String fullName;
@@ -28,6 +31,7 @@ public class User implements UserDetails {
     private Attachment attachment;
     @ManyToMany(fetch = FetchType.EAGER)
     private List<Role> roles;
+    private Integer tempCode;
 
 
     @Override
