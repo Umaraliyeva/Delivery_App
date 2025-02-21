@@ -5,32 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management</title>
     <style>
+        #modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            width: 400px;
+            height: 300px;
+            display: none;
+        }
+
+        #modal-content {
+            position: relative;
+        }
+
+        #close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: red;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
         }
+
         .container {
             width: 90%;
             margin: 50px auto;
             display: flex;
             gap: 20px;
             justify-content: center;
-            flex-wrap: wrap; /* Allow wrapping for smaller screens */
+            flex-wrap: wrap; /* Ekran kichrayganda joylashuvni moslash */
         }
+
         .column {
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             flex: 1;
             position: relative;
-            min-width: 220px; /* Smaller min-width */
-            max-width: 280px; /* Smaller max-width */
-            margin-bottom: 20px; /* Space between columns */
+            min-width: 220px; /* Minimal kenglik kichraytirildi */
+            max-width: 280px; /* Maksimal kenglik */
+            margin-bottom: 20px; /* Ustunlar orasidagi bo‘shliq */
         }
+
         .new-order { background: #a3d9a5; }
-        .in-progress { background: #f0c674; }
+        .in-progress { background: #ffc85b; }
         .delivering { background: #72aee6; }
         .delivered { background: #fa8d8d; }
         .canceled { background: #ff4444; }
@@ -39,6 +69,7 @@
             text-align: center;
             margin-bottom: 10px;
         }
+
         .task {
             background: white;
             padding: 12px;
@@ -50,20 +81,46 @@
             position: relative;
             cursor: pointer;
         }
+
         .task-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            position: relative;
         }
+
         .task .options {
-            cursor: pointer;
+            position: absolute;
+            top: -25px; /* Eng tepaga chiqarish */
+            right: 0;
             font-size: 20px;
-        }
-        .task .arrow {
             cursor: pointer;
-            font-size: 18px;
+        }
+
+
+        .location {
+            font-size: 14px;
+            color: #444;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .arrow {
+            font-size: 16px;
             text-align: right;
         }
+
+        .date {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+            display: block;
+        }
+
         .modal {
             display: none;
             position: absolute;
@@ -77,9 +134,12 @@
             width: 250px;
             z-index: 1000;
         }
+
         .task:active .modal {
             display: block;
         }
+
+        /* Ortga qaytish tugmasi */
         .back-button {
             position: fixed;
             top: 20px;
@@ -97,7 +157,9 @@
             height: 40px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 1001;
-        }/* Archive Button */
+        }
+
+        /* Arxivlash tugmasi */
         .archive-button {
             position: fixed;
             top: 20px;
@@ -112,70 +174,47 @@
             z-index: 1001;
         }
     </style>
+
 </head>
 <body>
+<div id="modal">
+    <span id="close-modal">&times;</span>
+    <div id="modal-content"></div>
+</div>
+
+
 <a href="index.html" class="back-button" >&#8592;</a>
-<a href="#" class="archive-button">Archive</a> <!-- Archive button added -->
+<a href="#" class="archive-button">Archive</a>
 <br><br>
 <div class="container">
     <div class="column new-order">
         <h2>New Order</h2>
         <div class="task" id="new_order">
-            <div class="task-header">
-                <span>John Doe - 123 Main St</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 1, Item 2</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
     <div class="column in-progress">
         <h2>In Progress</h2>
         <div class="task" id="in_progress">
-            <div class="task-header">
-                <span>Jane Smith - 456 Oak Ave</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 3, Item 4</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
     <div class="column delivering">
         <h2>Delivering</h2>
         <div class="task" id="delivering">
-            <div class="task-header">
-                <span>Mike Johnson - 789 Pine Rd</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 5, Item 6</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
     <div class="column delivered">
         <h2>Completed</h2>
         <div class="task" id="completed">
-            <div class="task-header">
-                <span>Mike Johnson - 789 Pine Rd</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 5, Item 6</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
     <div class="column canceled">
-        <h2>Canceled</h2>
+        <h2>Trash</h2>
         <div class="task" id="canceled">
-            <div class="task-header">
-                <span>Emily Davis - 321 Elm St</span>
-                <span class="options">⋮</span>
-            </div>
-            <span>Item 7, Item 8</span>
-            <span class="arrow">➡️</span>
-            <div class="modal">Order Details...</div>
+
         </div>
     </div>
 </div>
@@ -199,7 +238,6 @@
             const response = await fetch(url);
             const data = await response.json();
 
-            // Yandex API natijasidan eng yaqin manzilni olish
             const address =
                 data.response.GeoObjectCollection.featureMember[0]?.GeoObject?.metaDataProperty?.GeocoderMetaData?.text ||
                 "Manzil topilmadi";
@@ -222,37 +260,75 @@
                 let address = await getAddressFromCoordinates(item.location.latitude, item.location.longitude);
 
                 let orderHtml = `
-                <div class="task-header">
-                    <span>${item.tgUser.fullName}</span>
-                    <span class="options">⋮</span>
-                </div>
-                <span>Location: ${address}</span>
-                <span>${formattedDate}</span>
-                <span class="arrow">➡️</span>
-            `;
+            <div class="task">
+    <div class="task-header">
+        <span class="options">⋮</span>
+        <span class="name">${item.tgUser.fullName}</span>
+        <input type="hidden" value="${item.id}">
+    </div>
+    <span class="location">Location: ${address}</span>
+    <span class="location">${item.tgUser.phone}</span>
+    <span class="date">${formattedDate}</span>
+    <span class="arrow">➡️</span>
+</div>
 
+
+
+            `;
                 switch (item.status) {
-                    case "NEW":
-                        new_order.innerHTML = orderHtml;
-                        break;
-                    case "IN_PROGRESS":
-                        in_progress.innerHTML = orderHtml;
-                        break;
-                    case "DELIVERING":
-                        delivering.innerHTML = orderHtml;
-                        break;
-                    case "COMPLETED":
-                        completed.innerHTML = orderHtml;
-                        break;
-                    case "CANCELED":
-                        canceled.innerHTML = orderHtml;
-                        break;
-                    default:
-                        return;
+                    case "NEW": new_order.innerHTML = orderHtml;break;
+                    case "IN_PROGRESS": in_progress.innerHTML = orderHtml;break;
+                    case "DELIVERING": delivering.innerHTML = orderHtml; break;
+                    case "COMPLETED": completed.innerHTML = orderHtml; break;
+                    case "CANCELED": canceled.innerHTML = orderHtml; break;
+                    default: return;
                 }
             }
         });
-
-
 </script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("modal");
+        const modalContent = document.getElementById("modal-content");
+        const closeModalBtn = document.getElementById("close-modal");
+
+        let selectedOrderId = null; // Tanlangan order ID
+        let selectedOrderStatus = null; // Task statusi (ustun nomi)
+
+        document.addEventListener("click", function (event) {
+            let task = event.target.closest(".task");
+            if (!task || event.target.classList.contains("options")) return;
+
+            let taskIdInput = task.querySelector("input[type='hidden']");
+            let column = task.closest(".column"); // Task joylashgan column
+
+            if (taskIdInput && column) {
+                selectedOrderId = taskIdInput.value; // Task ID sini olish
+                selectedOrderStatus = column.querySelector("h2").innerText; // Statusni olish
+
+                openModal(selectedOrderId, selectedOrderStatus);
+            }
+        });
+
+        closeModalBtn.addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+
+        function openModal(taskId, taskStatus) {
+            axios.post(`http://localhost:8080/orderItem/${taskId}`)
+                .then(res => {
+                    console.log("Order items:", res.data); // Konsolda natijani tekshiring
+                });
+
+            modalContent.innerHTML = `
+        <h2>Task ID: ${taskId}</h2>
+        <p>Status: ${taskStatus}</p>
+    `;
+            modal.style.display = "block";
+        }
+
+    });
+</script>
+
+
 </html>
